@@ -1,0 +1,5 @@
+@Api.GRRInnovations.FeatureFlags_HostAddress = https://localhost:7027
+
+GET {{Api.GRRInnovations.FeatureFlags_HostAddress}}/api/v1/subscription
+
+###
