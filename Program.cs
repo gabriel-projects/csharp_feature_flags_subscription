@@ -17,7 +17,14 @@ namespace Api.GRRInnovations.FeatureFlags
                         config.AddAzureAppConfiguration(option =>
                         {
                             var connectionString = settings["ConnectionStrings:AzureAppConfig"];
-                            option.Connect(connectionString);
+
+                            option.Connect(connectionString)
+                            .ConfigureRefresh(refresh =>
+                            {
+                                refresh.Register("FeatureManagement:EnableUpdateSubscription", refreshAll: true)
+                                    .SetRefreshInterval(TimeSpan.FromSeconds(10));
+                            })
+                            .UseFeatureFlags();
                         });
                     });
 
