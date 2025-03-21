@@ -20,8 +20,8 @@ namespace Api.GRRInnovations.FeatureFlags
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
 
-            services.AddAzureAppConfiguration();
-            services.AddFeatureManagement();
+            services.AddAzureAppConfiguration(); //necessary for the use with capture refresh/update flags in azure
+            services.AddFeatureManagement(); //for using wiht depency injection IFeatureManager
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -38,7 +38,8 @@ namespace Api.GRRInnovations.FeatureFlags
 
             app.UseAuthorization();
 
-            app.UseAzureAppConfiguration();
+            //app.UseMiddleware<TargetingHttpContextMiddleware>();
+            app.UseAzureAppConfiguration(); //necessary for the use with capture refresh/update flags in azure
 
             app.UseEndpoints(endpoints =>
             {

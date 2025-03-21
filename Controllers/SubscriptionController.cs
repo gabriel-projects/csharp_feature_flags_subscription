@@ -22,7 +22,11 @@ namespace Api.GRRInnovations.FeatureFlags.Controllers
             _configuration = configuration;
         }
 
-        [HttpGet]
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("CreateSubscription")]
         public async Task<IActionResult> CreateSubscription()
         {
             var featureFilterContext = new FeatureFilterEvaluationContext();
@@ -38,8 +42,42 @@ namespace Api.GRRInnovations.FeatureFlags.Controllers
         }
 
 
+        /// <summary>
+        /// Endpoint using for AppConfiguration with ConfigureRefresh
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("EnableAdminTools")]
+        public async Task<IActionResult> EnableAdminTools()
+        {
+            var enableAdminTools = _configuration.GetSection("FeatureManagement:EnableAdminTools");
+            bool isAdminToolsEnabled = await _featureManager.IsEnabledAsync("EnableAdminTools");
 
+            await Task.CompletedTask;
 
+            return new OkObjectResult(new
+            {
+                enableAdminTools
+            });
+        }
+
+        /// <summary>
+        /// Endpoint using for AppConfiguration with snapshots flags
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("EnvsSnapshot")]
+        public async Task<IActionResult> EnvsSnapshot()
+        {
+            bool isEnableDarkMode = await _featureManager.IsEnabledAsync("EnableDarkMode"); //in snapshot
+            bool isEnableDashboardV2 = await _featureManager.IsEnabledAsync("EnableDashboardV2"); //in snapshot
+
+            await Task.CompletedTask;
+
+            return new OkObjectResult(new
+            {
+                isEnableDarkMode = isEnableDarkMode,
+                isEnableDashboardV2 = isEnableDashboardV2
+            });
+        }
         public class UnitFilterSettings
         {
             public string[] AllowedUnits { get; set; } = Array.Empty<string>();

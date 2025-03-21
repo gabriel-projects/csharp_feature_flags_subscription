@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Options;
+
 namespace Api.GRRInnovations.FeatureFlags
 {
     public class Program
@@ -19,12 +21,23 @@ namespace Api.GRRInnovations.FeatureFlags
                             var connectionString = settings["ConnectionStrings:AzureAppConfig"];
 
                             option.Connect(connectionString)
-                            .ConfigureRefresh(refresh =>
-                            {
-                                refresh.Register("FeatureManagement:EnableUpdateSubscription", refreshAll: true)
-                                    .SetRefreshInterval(TimeSpan.FromSeconds(10));
-                            })
+                                .ConfigureRefresh(refresh =>
+                                {
+                                    refresh.Register("FeatureManagement:EnableAdminTools", refreshAll: true)
+                                        .SetRefreshInterval(TimeSpan.FromSeconds(10));
+                                })
                             .UseFeatureFlags();
+
+                            option.Connect(connectionString)
+                                .ConfigureRefresh(refresh =>
+                                {
+                                    refresh.Register("FeatureManagement:EnableUpdateSubscription", refreshAll: true)
+                                        .SetRefreshInterval(TimeSpan.FromSeconds(10));
+                                })
+                            .UseFeatureFlags();
+
+                            option.Connect(connectionString)
+                                    .SelectSnapshot("feature-flags-snapshot-dev").UseFeatureFlags();
                         });
                     });
 
