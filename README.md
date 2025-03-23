@@ -160,6 +160,8 @@ Feel free to open an issue, suggest improvements, or submit a PR. Let’s improv
 
 ## 💬 Contact
 
+[![dotnet-ci](https://github.com/gabriel-projects/csharp_feature_flags_subscription/actions/workflows/dotnet.yml/badge.svg)](https://github.com/gabriel-projects/csharp_feature_flags_subscription/actions/workflows/dotnet.yml)
+
 If you have questions or want to talk about Feature Flags and .NET best practices, reach out:
 
 📱 [LinkedIn](https://www.linkedin.com/in/gabriel-ribeiro96/)
