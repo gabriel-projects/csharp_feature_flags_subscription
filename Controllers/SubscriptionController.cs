@@ -1,8 +1,6 @@
-﻿using Azure.Core;
+﻿using Api.GRRInnovations.FeatureFlags.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureAppConfiguration.FeatureManagement;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Microsoft.FeatureManagement;
 
 namespace Api.GRRInnovations.FeatureFlags.Controllers
@@ -11,34 +9,35 @@ namespace Api.GRRInnovations.FeatureFlags.Controllers
     [ApiController]
     public class SubscriptionController : ControllerBase
     {
-        private readonly FeatureFlagOptions _featureFlags;
         private readonly IFeatureManager _featureManager;
         private readonly IConfiguration _configuration;
+        private readonly FeatureFlagService _featureFlagService;
+        private readonly IConfigurationRefresher _refresher;
 
-        public SubscriptionController(IOptions<FeatureFlagOptions> featureFlags, IFeatureManager featureManager, IConfiguration configuration)
+        public SubscriptionController(IFeatureManager featureManager, IConfiguration configuration, FeatureFlagService featureFlagService, IConfigurationRefresher refresher)
         {
-            _featureFlags = featureFlags.Value;
             _featureManager = featureManager;
             _configuration = configuration;
+            _featureFlagService = featureFlagService;
+            _refresher = refresher;
         }
 
         /// <summary>
-        /// 
+        /// Endpoint using for AppConfiguration with CustomFilter
         /// </summary>
         /// <returns></returns>
-        [HttpGet("CreateSubscription")]
-        public async Task<IActionResult> CreateSubscription()
+        [HttpGet("CreateOrUpdateSubscription")]
+        public IActionResult CreateOrUpdateSubscription()
         {
-            var featureFilterContext = new FeatureFilterEvaluationContext();
-            var allowedUnits = _configuration.GetSection("FeatureManagement:EnableUpdateSubscription:EnabledFor:0:Parameters:Units").Get<string[]>();
-            var enableUpdateSubscription = _configuration.GetSection("FeatureManagement:EnableUpdateSubscription");
-            bool isFeatureEnabled = await _featureManager.IsEnabledAsync("EnableUpdateSubscription");
-            if (!isFeatureEnabled)
+            var example = _configuration.GetSection("FeatureManagement:EnableUpdateSubscription:EnabledFor:0:Parameters:Values").Get<string[]>();
+
+            var allowedUnits = _featureFlagService.GetFeatureFlagValues("EnableUpdateSubscription");
+            if (allowedUnits == null || allowedUnits?.Length == 0)
             {
-                return BadRequest(new { Message = "Atualização de assinatura não está disponível no momento." });
+                return BadRequest(new { Message = "Nenhuma unidade configurada para atualização." });
             }
 
-            return Ok();
+            return Ok(new { Message = "Atualização permitida para as unidades", Units = allowedUnits });
         }
 
 
@@ -49,6 +48,8 @@ namespace Api.GRRInnovations.FeatureFlags.Controllers
         [HttpGet("EnableAdminTools")]
         public async Task<IActionResult> EnableAdminTools()
         {
+            await _refresher.TryRefreshAsync();
+
             var enableAdminTools = _configuration.GetSection("FeatureManagement:EnableAdminTools");
             bool isAdminToolsEnabled = await _featureManager.IsEnabledAsync("EnableAdminTools");
 
@@ -78,9 +79,23 @@ namespace Api.GRRInnovations.FeatureFlags.Controllers
                 isEnableDashboardV2 = isEnableDashboardV2
             });
         }
-        public class UnitFilterSettings
+
+        /// <summary>
+        /// todo: criar endpoint para usar com targeting group
+        /// https://github.com/microsoft/FeatureManagement-Dotnet/blob/main/examples/TargetingConsoleApp/Program.cs
+        /// https://www.daveabrock.com/2020/06/07/custom-filters-in-core-flags/
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("BrowserFilter")]
+        //[FeatureGate("AllowedBrowsers")]
+        public async Task<IActionResult> BrowserFilter()
         {
-            public string[] AllowedUnits { get; set; } = Array.Empty<string>();
+            var enableAdminTools = _configuration.GetSection("FeatureManagement:AllowedBrowsers");
+
+            if (await _featureManager.IsEnabledAsync("AllowedBrowsers"))
+                return Ok("Funcionalidade liberada para Chrome!");
+
+            return Ok("Funcionalidade ainda não disponível para seu navegador.");
         }
     }
 }

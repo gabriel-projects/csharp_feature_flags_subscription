@@ -1,4 +1,6 @@
-﻿using Microsoft.FeatureManagement;
+﻿using Api.GRRInnovations.FeatureFlags.Models;
+using Api.GRRInnovations.FeatureFlags.Services;
+using Microsoft.FeatureManagement;
 
 namespace Api.GRRInnovations.FeatureFlags
 {
@@ -20,8 +22,28 @@ namespace Api.GRRInnovations.FeatureFlags
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
 
+            services.AddApplicationInsightsTelemetry(x => x.ConnectionString = Configuration.GetConnectionString("ApplicationInsights"));
+
             services.AddAzureAppConfiguration(); //necessary for the use with capture refresh/update flags in azure
-            services.AddFeatureManagement(); //for using wiht depency injection IFeatureManager
+
+            services.AddHttpContextAccessor();
+
+            //for using for access depency injection IFeatureManager on controller
+            //services.AddFeatureManagement();
+            services.AddFeatureManagement().WithTargeting<CustomTargetingContextAccessor>(); //fnciona
+
+            services.Configure<FeatureFlagConfig<string[]>>(
+                Configuration.GetSection("FeatureManagement:EnableUpdateSubscription"));
+
+            services.AddScoped<FeatureFlagService>();
+
+            services.AddLogging(x =>
+            {
+                x.AddDebug();
+                x.AddConsole();
+            });
+
+            services.AddSingleton(Program._refresher);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -38,7 +60,6 @@ namespace Api.GRRInnovations.FeatureFlags
 
             app.UseAuthorization();
 
-            //app.UseMiddleware<TargetingHttpContextMiddleware>();
             app.UseAzureAppConfiguration(); //necessary for the use with capture refresh/update flags in azure
 
             app.UseEndpoints(endpoints =>
