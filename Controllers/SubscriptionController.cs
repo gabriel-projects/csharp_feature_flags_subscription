@@ -34,15 +34,15 @@ namespace Api.GRRInnovations.FeatureFlags.Controllers
             var allowedUnits = _featureFlagService.GetFeatureFlagValues("EnableUpdateSubscription");
             if (allowedUnits == null || allowedUnits?.Length == 0)
             {
-                return BadRequest(new { Message = "Nenhuma unidade configurada para atualização." });
+                return BadRequest(new { Message = "No unit configured for update." });
             }
 
-            return Ok(new { Message = "Atualização permitida para as unidades", Units = allowedUnits });
+            return Ok(new { Message = "Update allowed for the units.", Units = allowedUnits });
         }
 
 
         /// <summary>
-        /// Endpoint using for AppConfiguration with ConfigureRefresh
+        /// Endpoint using for AppConfiguration with ConfigureRefresh forced
         /// </summary>
         /// <returns></returns>
         [HttpGet("EnableAdminTools")]
@@ -93,9 +93,9 @@ namespace Api.GRRInnovations.FeatureFlags.Controllers
             var enableAdminTools = _configuration.GetSection("FeatureManagement:AllowedBrowsers");
 
             if (await _featureManager.IsEnabledAsync("AllowedBrowsers"))
-                return Ok("Funcionalidade liberada para Chrome!");
+                return Ok("Feature enabled for Chrome!.");
 
-            return Ok("Funcionalidade ainda não disponível para seu navegador.");
+            return Ok("This feature is not yet supported on your browser.");
         }
     }
 }

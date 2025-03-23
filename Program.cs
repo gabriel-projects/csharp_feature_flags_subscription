@@ -25,15 +25,17 @@ namespace Api.GRRInnovations.FeatureFlags
                             options.Connect(connectionString)
                                     .ConfigureRefresh(refresh =>
                                     {
-                                        //isso não sobreescreve o refrestinterval, porem se usar uma sentinelKey uma especie de pseudochave, que usamos ela para alterar o valor dela na azure e com isso todas as outras chaves serem atualizadas na proxima busca caso a gente altere demais flags, evitando inconsistencias de precisar manter sob observão diversas keys
+                                        // SentinelKey: a special key used to trigger the refresh of multiple feature flags simultaneously
                                         refresh.Register("SentinelKey", refreshAll: true).SetRefreshInterval(TimeSpan.FromMinutes(1));
                                     })
+
+                                    // UseFeatureFlags: required to retrieve the latest config; works like refresh registration for individual or all flags
                                     .UseFeatureFlags(x =>
                                     {
-                                        //caso nao use uma sentinelkey ou monitore alguma chave, devemos configurar aqui o cache das flags
+                                        // If you don't use a SentinelKey, you must manually define the cache refresh interval
                                         x.SetRefreshInterval(TimeSpan.FromMinutes(1));
 
-                                    }); //UseFeatureFlags: necessary for search the config actual, your use is equais refresh register that configure one on one or all flags
+                                    });
 
                             //.SelectSnapshot("feature-flags-snapshot-dev")
                             _refresher = options.GetRefresher();

@@ -22,27 +22,33 @@ namespace Api.GRRInnovations.FeatureFlags
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
 
+            // Optional telemetry with Application Insights
             services.AddApplicationInsightsTelemetry(x => x.ConnectionString = Configuration.GetConnectionString("ApplicationInsights"));
 
-            services.AddAzureAppConfiguration(); //necessary for the use with capture refresh/update flags in azure
+            // Enables support for Azure App Configuration (required for middleware and refresh)
+            services.AddAzureAppConfiguration();
 
             services.AddHttpContextAccessor();
 
-            //for using for access depency injection IFeatureManager on controller
-            //services.AddFeatureManagement();
-            services.AddFeatureManagement().WithTargeting<CustomTargetingContextAccessor>(); //fnciona
+            // For using IFeatureManager dependency injection in the controller
+            // Enables Feature Flags with support for custom targeting filters
+            services.AddFeatureManagement().AddApplicationInsightsTelemetry().WithTargeting<CustomTargetingContextAccessor>();
 
+            // Strongly-typed configuration binding for specific Feature Flag use
             services.Configure<FeatureFlagConfig<string[]>>(
                 Configuration.GetSection("FeatureManagement:EnableUpdateSubscription"));
 
+            // Service that handles feature flag logic
             services.AddScoped<FeatureFlagService>();
 
+            // Logging injection
             services.AddLogging(x =>
             {
                 x.AddDebug();
                 x.AddConsole();
             });
 
+            // Manual refresher
             services.AddSingleton(Program._refresher);
         }
 
@@ -60,7 +66,8 @@ namespace Api.GRRInnovations.FeatureFlags
 
             app.UseAuthorization();
 
-            app.UseAzureAppConfiguration(); //necessary for the use with capture refresh/update flags in azure
+            // Enables the required middleware for using Feature Flags with Azure App Configuration (required for middleware and refresh)
+            app.UseAzureAppConfiguration();
 
             app.UseEndpoints(endpoints =>
             {
