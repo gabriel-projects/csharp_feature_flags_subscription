@@ -67,7 +67,7 @@ namespace Api.GRRInnovations.FeatureFlags
             app.UseAuthorization();
 
             // Enables the required middleware for using Feature Flags with Azure App Configuration (required for middleware and refresh)
-            app.UseAzureAppConfiguration();
+            app.UseAzureAppConfigurations();
 
             app.UseEndpoints(endpoints =>
             {
